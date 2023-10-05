@@ -1,11 +1,28 @@
 #README
 
-Cette branche contient la gestion d'exception générer par l'application
+Priorisation et planning 
 
-## Étape 1: Structure du code 
+## Étape 1: Documentez l'API 
 
-Etant donné le contexte du test j'ai obpté pour un programmation séquentielle
+La documentation est importante car permet le survie et le maintient du projet
 
-## Étape 1: Environnement de producion
+Delais : 1 jour
 
-Géneralement en environnement de production, nous devons fais attention au variable d'environnement. J'avoue que avec express js je n'ai pas d'expérience poussé car n'ayant pour le moment faire un cas pratique
+
+## Étape 2: Correction du bug dans le module de connexion 
+
+Il est important de fixer les bugs pouvant nuire au process métier du système
+Delais : 2 jours
+
+## Étape 3: Optimiser l'API 
+
+Améloiration de l'expreience utilisateur 
+Delais : 2 jours
+
+## Étape 4: Développer une nouvelle fonctionnalité 
+Il n'est pas urgent de développer des fonctonnalité si celles existantes ne fonctionne pas correctement ou pas du tout
+
+Delais : 2 jours
+
+
+
