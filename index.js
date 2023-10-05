@@ -1,71 +1,109 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const mongoose = require('mongoose');
+
 const app = express();
 
 app.use(bodyParser.json());
 
-// Données de test pour les livres 
-let books = [
-    { id: 1, titre: 'React Js for Biginner part 1', auteur: 'Mac 1', date_publication: '2022-01-01' },
-    { id: 2, titre: 'Père riche vol 2', auteur: 'Max 2', date_publication: '2022-02-01' },
-    { id: 3, titre: 'Gachette', auteur: 'Louis 3', date_publication: '2022-03-01' }
-];
+
+// Connexion à la base de données MongoDB
+mongoose.connect('mongodb://localhost:27017/livres', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => {
+    console.log('Connexion à la base de données réussie');
+}).catch((error) => {
+    console.error('Erreur de connexion à la base de données', error);
+});
+
 
 // welcome route
 app.get("/", (req, res) => {
     res.json({ message: "Welcome." });
 });
 
+
+// Définition du schéma du livre
+const livreSchema = new mongoose.Schema({
+    titre: String,
+    auteur: String,
+    date_publication: Date
+});
+
+// Définition du modèle du livre
+const Livre = mongoose.model('Libre', livreSchema);
+
 // Récupérer tous les livres
 app.get('/livres', (req, res) => {
-    res.json(books);
+    Livre.find({}, (err, livres) => {
+        if (err) {
+            res.status(500).json({ message: 'Erreur interne du serveur', result: err });
+        } else {
+            res.json(livres);
+        }
+    });
 })
 
 // Récupérer un livre par son ID
 app.get('/livres/:id', (req, res) => {
-    const bookId = parseInt(req.params.id);
-    const book = books.find(book => book.id === bookId);
+    const livreId = parseInt(req.params.id);
 
-    if (book) {
-        res.json(book);
-    } else {
-        res.status(404).json({ message: 'Livre non trouvé' });
-    }
+    Livre.findById(livreId, (err, livre) => {
+        if (err) {
+            res.status(500).json({ message: 'Erreur interne du serveur' });
+        } else if (!livre) {
+            res.status(404).json({ message: 'Livre non trouvé' });
+        } else {
+            res.json(livre);
+        }
+    });
 });
 
 // Ajouter un nouveau livre
 app.post('/livres', (req, res) => {
-    const newBook = req.body;
-    newBook.id = books.length + 1;
-    books.push(newBook);
-
-    res.status(201).json(newBook);
+    const nouveauLivre = req.body;
+    Livre.create(nouveauLivre, (err, livre) => {
+        if (err) {
+            res.status(500).json({ message: 'Erreur interne du serveur' });
+        } else {
+            res.status(201).json(livre);
+        }
+    });
 });
 
 // Mettre à jour un livre existant
 app.put('/livres/:id', (req, res) => {
-    const bookId = parseInt(req.params.id);
-    const updatedBook = req.body;
+    const livreId = parseInt(req.params.id);
+    const nouveauLivre = req.body;
 
-    const bookIndex = books.findIndex(book => book.id === bookId);
-
-    if (bookIndex !== -1) {
-        books[bookIndex] = { ...books[bookIndex], ...updatedBook };
-        res.json(books[bookIndex]);
-    } else {
-        res.status(404).json({ message: 'Livre non trouvé' });
-    }
+    Livre.findByIdAndUpdate(livreId, nouveauLivre, { new: true }, (err, livre) => {
+        if (err) {
+            res.status(500).json({ message: 'Erreur interne du serveur' });
+        } else if (!livre) {
+            res.status(404).json({ message: 'Livre non trouvé' });
+        } else {
+            res.json(livre);
+        }
+    });
 });
 
 
 // Supprimer un livre
 app.delete('/livres/:id', (req, res) => {
-    const bookId = parseInt(req.params.id);
+    const livreId = parseInt(req.params.id);
 
-    books = books.filter(book => book.id !== bookId);
-
-    res.sendStatus(204);
+    // Supprimer un livre spécifique de la base de données
+    Book.findByIdAndRemove(bookId, (err, book) => {
+        if (err) {
+            res.status(500).json({ message: 'Erreur interne du serveur' });
+        } else if (!book) {
+            res.status(404).json({ message: 'Livre non trouvé' });
+        } else {
+            res.sendStatus(204);
+        }
+    });
 });
 
 // gestion d'erreur interne 
