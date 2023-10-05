@@ -1,5 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+
 
 const app = express();
 
@@ -17,13 +19,35 @@ app.get("/", (req, res) => {
     res.json({ message: "Welcome." });
 });
 
+// Auth
+const authenticateJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+
+        jwt.verify(token, accessTokenSecret, (err, user) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+
+            req.user = user;
+            next();
+        });
+    } else {
+        res.sendStatus(401);
+    }
+};
+
+
+
 // Récupérer tous les livres
-app.get('/livres', (req, res) => {
+app.get('/livres',authenticateJWT , (req, res) => {
     res.json(books);
 })
 
 // Récupérer un livre par son ID
-app.get('/livres/:id', (req, res) => {
+app.get('/livres/:id', authenticateJWT ,(req, res) => {
     const bookId = parseInt(req.params.id);
     const book = books.find(book => book.id === bookId);
 
@@ -35,7 +59,7 @@ app.get('/livres/:id', (req, res) => {
 });
 
 // Ajouter un nouveau livre
-app.post('/livres', (req, res) => {
+app.post('/livres', authenticateJWT, (req, res) => {
     const newBook = req.body;
     newBook.id = books.length + 1;
     books.push(newBook);
@@ -44,7 +68,7 @@ app.post('/livres', (req, res) => {
 });
 
 // Mettre à jour un livre existant
-app.put('/livres/:id', (req, res) => {
+app.put('/livres/:id', authenticateJWT, (req, res) => {
     const bookId = parseInt(req.params.id);
     const updatedBook = req.body;
 
@@ -60,7 +84,7 @@ app.put('/livres/:id', (req, res) => {
 
 
 // Supprimer un livre
-app.delete('/livres/:id', (req, res) => {
+app.delete('/livres/:id', authenticateJWT , (req, res) => {
     const bookId = parseInt(req.params.id);
 
     books = books.filter(book => book.id !== bookId);
@@ -79,5 +103,5 @@ const PORT = process.env.PORT || 3000;
 
 // Démarrer le serveur
 app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`)
+    console.log(`API  listening on port ${PORT}`)
 });
